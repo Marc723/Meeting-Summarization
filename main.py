@@ -8,14 +8,12 @@ import re
 import streamlit as st
 from transformers import pipeline
 from faster_whisper import WhisperModel
-from pyannote.audio import Pipeline
 from pydub import AudioSegment
 from pydub.effects import normalize
 from moviepy.editor import VideoFileClip
 import moviepy.editor as mp
 import tempfile
 import os
-
 
 
 # Fungsi untuk merekam audio
@@ -59,47 +57,6 @@ def extract_audio_from_video(video_file):
     audio = video.audio
     audio.write_audiofile("extracted_audio.wav")
     return "extracted_audio.wav"
-
-# Fungsi untuk melakukan diarization
-def diarize_audio(file_path):
-    pipeline = Pipeline.from_pretrained(
-  "pyannote/speaker-diarization-3.1",
-  use_auth_token="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")
-    diarization = pipeline(file_path)
-    return diarization
-
-# Fungsi untuk memperpanjang segmen diarization (untuk sinkronisasi yang lebih baik)
-def extend_diarization_boundaries(diarization, margin=0.5):
-    adjusted_diarization = []
-    for turn, _, speaker in diarization.itertracks(yield_label=True):
-        start = max(0, turn.start - margin)
-        end = turn.end + margin
-        adjusted_diarization.append((start, end, speaker))
-    return adjusted_diarization
-
-# Fungsi untuk transkripsi audio dengan diarization yang disinkronkan
-def transcribe_with_speaker(file_path, diarization):
-    model = WhisperModel("medium")
-    segments, _ = model.transcribe(file_path, vad_filter=True)  
-
-    diarization_result = extend_diarization_boundaries(diarization)
-
-    transcript = ""
-    for segment in segments:
-        start_time = segment.start
-        end_time = segment.end
-        speaker = 'unknown'
-
-        # Mencari segmen diarization yang cocok dengan segmen transkripsi
-        for turn_start, turn_end, spk in diarization_result:
-            if turn_start <= end_time and start_time <= turn_end:
-                speaker = spk
-                break
-        
-        # Menyusun hasil transkripsi dengan label pembicara
-        transcript += f"[{start_time:.2f} - {end_time:.2f}] Speaker {speaker}: {segment.text}\n"
-
-    return transcript
 
 # Fungsi untuk transkripsi audio tanpa diarization
 def transcribe_audio(file_path):
@@ -160,7 +117,7 @@ def main():
     st.title("Audio/Video Transcription and Summarization")
 
     # Pilihan antara merekam, mengunggah audio, atau mengunggah video
-    option = st.selectbox("Choose an option:", ["Upload Audio", "Record Audio", "Upload Video"])
+    option = st.selectbox("Choose an option:", ["Upload Audio", "Record Audio"])
 
     file_path = None
 
@@ -180,16 +137,6 @@ def main():
                 record_audio(tmp_file.name, record_seconds=record_seconds)
                 st.write(f"Recorded audio for {record_seconds} seconds.")
                 file_path = tmp_file.name
-
-    elif option == "Upload Video":
-        uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "mkv"])
-        if uploaded_file is not None:
-            # Simpan file video yang diunggah ke file sementara
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.' + uploaded_file.name.split('.')[-1]) as tmp_file:
-                tmp_file.write(uploaded_file.getbuffer())
-                video_file_path = tmp_file.name
-            # Ekstrak audio dari video
-            file_path = extract_audio_from_video(video_file_path)
 
     if file_path:
         # Preprocessing (opsional, jika ingin menggunakan normalisasi)
