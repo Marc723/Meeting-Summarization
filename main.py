@@ -16,7 +16,6 @@ import tempfile
 import os
 
 
-
 # Fungsi untuk merekam audio
 def record_audio(filename, record_seconds=10, chunk=1024, format=pyaudio.paInt16, channels=1, rate=16000):
     p = pyaudio.PyAudio()
