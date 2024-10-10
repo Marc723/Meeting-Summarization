@@ -1,5 +1,5 @@
 #how to run type = streamlit run main.py(nama file) 
-#package requirement = streamlit pyaudio torch transformers faster-whisper pyannote.audio pydub moviepy ffmpeg
+#package requirement = streamlit pyaudio torch transformers faster-whisper pydub moviepy ffmpeg
 
 import pyaudio
 import wave
