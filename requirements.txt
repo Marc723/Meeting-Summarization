@@ -7,3 +7,4 @@ pyannote.audio
 pydub
 moviepy
 ffmpeg-python
+portaudio19-dev
