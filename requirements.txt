@@ -1,5 +1,5 @@
 streamlit
-pyaudio
+https://github.com/Research-Development-Intern-IL/Meeting-Summarization/raw/main/PyAudio-0.2.11-cp310-cp310-win_amd64.whl
 torch
 transformers
 faster-whisper
@@ -7,4 +7,4 @@ pyannote.audio
 pydub
 moviepy
 ffmpeg-python
-portaudio19-dev
+
