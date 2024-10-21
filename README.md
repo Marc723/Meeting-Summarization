@@ -4,7 +4,7 @@ Membuat website yang responsif untuk merangkum hasil rapat dengan menggunakan mo
 
 
 ## Team Member
-Internship Research & Development Infinite Learning
+AI Team
 Nama | Asal Kampus | Jurusan | Github Profile
 :---|:---:|:---:|---:
 Marco T P| Universitas Tadulako | Teknik Informatika | [Profile](https://github.com/Marc723)
@@ -13,3 +13,9 @@ Muhammad Habib Muslih | Universitas Sumatera Utara | Teknologi Informasi | [Prof
 Wicaksana | Universitas | Teknik Informatika | [Profile]
 Abib Raifmuaffah Ihwan | Universitas Tadulako | Teknik Informatika | [Profile](https://github.com/AbibRaifmuaffahIhwan)
 
+Web Team
+Nama | Asal Kampus | Jurusan | Github Profile
+:---|:---:|:---:|---:
+Selta| Universitas  | Teknik Informatika | [Profile](https://github.com/Marc723)
+Virgonita | Universitas | Sistem Informasi | [Profile](https://github.com/izaa08)
+Nyoman | Universitas Sumatera Utara | Teknologi Informasi | [Profile](https://github.com/HMuslih)
