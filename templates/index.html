@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Audio Transcription & Summarization</title>
+</head>
+<body>
+    <h2>Upload Audio File for Transcription & Summarization</h2>
+    <form action="/upload-audio/" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept="audio/*" required>
+        <button type="submit">Upload & Process</button>
+    </form>
+    
+    <h2>Record Audio for Transcription & Summarization</h2>
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording" disabled>Stop Recording</button>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById("startRecording").onclick = async function() {
+            audioChunks = [];
+            let stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+            mediaRecorder.onstop = async () => {
+                let blob = new Blob(audioChunks, { type: 'audio/wav' });
+                let formData = new FormData();
+                formData.append("audio_data", blob, "recorded_audio.wav");
+
+                // Send recorded audio to the server
+                await fetch("/record-audio/", {
+                    method: "POST",
+                    body: formData
+                }).then(response => response.text())
+                  .then(data => {
+                      document.body.innerHTML += data;
+                  });
+            };
+
+            mediaRecorder.start();
+            document.getElementById("startRecording").disabled = true;
+            document.getElementById("stopRecording").disabled = false;
+        };
+
+        document.getElementById("stopRecording").onclick = function() {
+            mediaRecorder.stop();
+            document.getElementById("startRecording").disabled = false;
+            document.getElementById("stopRecording").disabled = true;
+        };
+    </script>
+</body>
+</html>
