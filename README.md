@@ -16,6 +16,6 @@ Abib Raifmuaffah Ihwan | Universitas Tadulako | Teknik Informatika | [Profile](h
 Web Team
 Nama | Asal Kampus | Jurusan | Github Profile
 :---|:---:|:---:|---:
-Selta| Universitas  | Teknik Informatika | [Profile](https://github.com/Marc723)
+Selta| Universitas Muhammadiyah Bengkulu  | Teknik Informatika | [Profile](https://github.com/Marc723)
 Virgonita | Universitas | Sistem Informasi | [Profile](https://github.com/izaa08)
 Nyoman | Universitas Sumatera Utara | Teknologi Informasi | [Profile](https://github.com/HMuslih)
