@@ -7,3 +7,5 @@ pydub==0.25.1
 fastapi==0.95.2
 uvicorn==0.23.2
 moviepy==1.0.3
+python-multipart
+pyannote.audio
