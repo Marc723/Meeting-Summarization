@@ -11,6 +11,8 @@ from transformers import pipeline
 from faster_whisper import WhisperModel
 from pydub import AudioSegment
 from pydub.effects import normalize
+from pyannote.audio import Pipeline
+from utils import diarize_text
 import uvicorn
 import tempfile
 
@@ -30,22 +32,40 @@ def preprocess_audio(file_path):
     normalized_audio.export(processed_path, format="wav")
     return processed_path
 
+def diarization_audio(processed_path):
+    pipeline = Pipeline.from_pretrained(
+        "pyannote/speaker-diarization-3.1",
+        use_auth_token="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")
+
+    diarization_result = pipeline(processed_path)
+    return diarization_result
+
 def transcribe_audio(file_path):
-    model_size = "large-v3"
+    # Specify the Whisper model to use
+    model_size = "medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     compute_type = "float16" if device == "cuda" else "int8"
     model = WhisperModel(model_size, device=device, compute_type=compute_type)
-    segments, info = model.transcribe(file_path, beam_size=5)
-    transcript = " ".join([segment.text for segment in segments])
-    return transcript
+
+    # Process transcription results
+    segments, info = model.transcribe(processed_path)
+
+    transcription_result = {"segments": [{"start": segment.start, "end": segment.end, "text": segment.text} for segment in segments]}
+
+    # Process diarization for the final result
+    final_result = diarize_text(transcription_result, diarization_result)
+
+    return final_result
 
 def summarize_text(input_text):
-    device = 0 if torch.cuda.is_available() else -1  
-    summarizer = pipeline("summarization", model="facebook/bart-large-cnn", device=device)
+   device = 0 if torch.cuda.is_available() else -1  
+    summarizer = pipeline("summarization", model="model/bart-finetuning-samsum", device=device)
 
     def split_text(text, chunk_size=1000):
-        return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-    
+         # Join all text segments into a single string for chunking
+        joined_text = ' '.join([t[2] if isinstance(t, tuple) else t for t in text])
+        return [joined_text[i:i + chunk_size] for i in range(0, len(joined_text), chunk_size)]
+      
     chunks = split_text(input_text)
     summaries = []
     
@@ -56,14 +76,8 @@ def summarize_text(input_text):
     final_summary = ' '.join(summaries)
     return final_summary
 
-def clean_summary_text(text):
-    text = re.sub(r'\b(?:um|uh|like|so|you know|well)\b', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
-
 def summary_to_bullets(summary_text):
-    summary_text = clean_summary_text(summary_text)  
-    sentences = summary_text.split('. ')  
+    sentences = final_summary.split('. ')  
     bullet_points = ["- " + sentence.strip() for sentence in sentences if len(sentence) > 10 and sentence]
     return '\n'.join(bullet_points)
 
@@ -78,7 +92,8 @@ async def upload_audio(request: Request, file: UploadFile = File(...)):
         file_path = tmp_file.name
     
     processed_file_path = preprocess_audio(file_path)
-    transcription = transcribe_audio(processed_file_path)
+    diarization_result = diarization_audio(processed_file_path)
+    transcription = transcribe_audio(diarization_result, processed_file_path)
     summary_bullets = summary_to_bullets(summarize_text(transcription))
 
     return templates.TemplateResponse("result.html", {
@@ -94,7 +109,8 @@ async def record_audio(request: Request, audio_data: UploadFile = File(...)):
         f.write(await audio_data.read())
     
     processed_file_path = preprocess_audio(audio_file_path)
-    transcription = transcribe_audio(processed_file_path)
+    diarization_result = diarization_audio(processed_file_path)
+    transcription = transcribe_audio(diarization_result, processed_file_path)
     summary_bullets = summary_to_bullets(summarize_text(transcription))
 
     return templates.TemplateResponse("result.html", {
