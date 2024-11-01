@@ -39,9 +39,9 @@ def diarization_audio(processed_path):
 
     diarization_result = pipeline(processed_path)
     return diarization_result
+    
 
-def transcribe_audio(file_path):
-    # Specify the Whisper model to use
+def transcribe_audio(diarization_result, processed_path):
     model_size = "medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     compute_type = "float16" if device == "cuda" else "int8"
@@ -49,7 +49,6 @@ def transcribe_audio(file_path):
 
     # Process transcription results
     segments, info = model.transcribe(processed_path)
-
     transcription_result = {"segments": [{"start": segment.start, "end": segment.end, "text": segment.text} for segment in segments]}
 
     # Process diarization for the final result
@@ -58,7 +57,7 @@ def transcribe_audio(file_path):
     return final_result
 
 def summarize_text(input_text):
-   device = 0 if torch.cuda.is_available() else -1  
+    device = 0 if torch.cuda.is_available() else -1  
     summarizer = pipeline("summarization", model="model/bart-finetuning-samsum", device=device)
 
     def split_text(text, chunk_size=1000):
@@ -76,10 +75,10 @@ def summarize_text(input_text):
     final_summary = ' '.join(summaries)
     return final_summary
 
-def summary_to_bullets(summary_text):
+def summary_to_bullets(final_summary):
     sentences = final_summary.split('. ')  
     bullet_points = ["- " + sentence.strip() for sentence in sentences if len(sentence) > 10 and sentence]
-    return '\n'.join(bullet_points)
+    return '\n\n'.join(bullet_points)
 
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
